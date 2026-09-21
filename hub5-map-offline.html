@@ -1,0 +1,1041 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>แผนที่ทำเล Hub 5</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* required styles */
+
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane > svg,
+.leaflet-pane > canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	}
+.leaflet-container {
+	overflow: hidden;
+	}
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	        user-select: none;
+	  -webkit-user-drag: none;
+	}
+/* Prevents IE11 from highlighting tiles in blue */
+.leaflet-tile::selection {
+	background: transparent;
+}
+/* Safari renders non-retina tile on retina better with this, but Chrome is worse */
+.leaflet-safari .leaflet-tile {
+	image-rendering: -webkit-optimize-contrast;
+	}
+/* hack that prevents hw layers "stretching" when loading new tiles */
+.leaflet-safari .leaflet-tile-container {
+	width: 1600px;
+	height: 1600px;
+	-webkit-transform-origin: 0 0;
+	}
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	display: block;
+	}
+/* .leaflet-container svg: reset svg max-width decleration shipped in Joomla! (joomla.org) 3.x */
+/* .leaflet-container img: map is broken in FF if you have max-width: 100% on tiles */
+.leaflet-container .leaflet-overlay-pane svg {
+	max-width: none !important;
+	max-height: none !important;
+	}
+.leaflet-container .leaflet-marker-pane img,
+.leaflet-container .leaflet-shadow-pane img,
+.leaflet-container .leaflet-tile-pane img,
+.leaflet-container img.leaflet-image-layer,
+.leaflet-container .leaflet-tile {
+	max-width: none !important;
+	max-height: none !important;
+	width: auto;
+	padding: 0;
+	}
+
+.leaflet-container img.leaflet-tile {
+	/* See: https://bugs.chromium.org/p/chromium/issues/detail?id=600120 */
+	mix-blend-mode: plus-lighter;
+}
+
+.leaflet-container.leaflet-touch-zoom {
+	-ms-touch-action: pan-x pan-y;
+	touch-action: pan-x pan-y;
+	}
+.leaflet-container.leaflet-touch-drag {
+	-ms-touch-action: pinch-zoom;
+	/* Fallback for FF which doesn't support pinch-zoom */
+	touch-action: none;
+	touch-action: pinch-zoom;
+}
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom {
+	-ms-touch-action: none;
+	touch-action: none;
+}
+.leaflet-container {
+	-webkit-tap-highlight-color: transparent;
+}
+.leaflet-container a {
+	-webkit-tap-highlight-color: rgba(51, 181, 229, 0.4);
+}
+.leaflet-tile {
+	filter: inherit;
+	visibility: hidden;
+	}
+.leaflet-tile-loaded {
+	visibility: inherit;
+	}
+.leaflet-zoom-box {
+	width: 0;
+	height: 0;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	z-index: 800;
+	}
+/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */
+.leaflet-overlay-pane svg {
+	-moz-user-select: none;
+	}
+
+.leaflet-pane         { z-index: 400; }
+
+.leaflet-tile-pane    { z-index: 200; }
+.leaflet-overlay-pane { z-index: 400; }
+.leaflet-shadow-pane  { z-index: 500; }
+.leaflet-marker-pane  { z-index: 600; }
+.leaflet-tooltip-pane   { z-index: 650; }
+.leaflet-popup-pane   { z-index: 700; }
+
+.leaflet-map-pane canvas { z-index: 100; }
+.leaflet-map-pane svg    { z-index: 200; }
+
+.leaflet-vml-shape {
+	width: 1px;
+	height: 1px;
+	}
+.lvml {
+	behavior: none;
+	display: inline-block;
+	position: absolute;
+	}
+
+
+/* control positioning */
+
+.leaflet-control {
+	position: relative;
+	z-index: 800;
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+.leaflet-top,
+.leaflet-bottom {
+	position: absolute;
+	z-index: 1000;
+	pointer-events: none;
+	}
+.leaflet-top {
+	top: 0;
+	}
+.leaflet-right {
+	right: 0;
+	}
+.leaflet-bottom {
+	bottom: 0;
+	}
+.leaflet-left {
+	left: 0;
+	}
+.leaflet-control {
+	float: left;
+	clear: both;
+	}
+.leaflet-right .leaflet-control {
+	float: right;
+	}
+.leaflet-top .leaflet-control {
+	margin-top: 10px;
+	}
+.leaflet-bottom .leaflet-control {
+	margin-bottom: 10px;
+	}
+.leaflet-left .leaflet-control {
+	margin-left: 10px;
+	}
+.leaflet-right .leaflet-control {
+	margin-right: 10px;
+	}
+
+
+/* zoom and fade animations */
+
+.leaflet-fade-anim .leaflet-popup {
+	opacity: 0;
+	-webkit-transition: opacity 0.2s linear;
+	   -moz-transition: opacity 0.2s linear;
+	        transition: opacity 0.2s linear;
+	}
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+	opacity: 1;
+	}
+.leaflet-zoom-animated {
+	-webkit-transform-origin: 0 0;
+	    -ms-transform-origin: 0 0;
+	        transform-origin: 0 0;
+	}
+svg.leaflet-zoom-animated {
+	will-change: transform;
+}
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+	-webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);
+	   -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);
+	        transition:         transform 0.25s cubic-bezier(0,0,0.25,1);
+	}
+.leaflet-zoom-anim .leaflet-tile,
+.leaflet-pan-anim .leaflet-tile {
+	-webkit-transition: none;
+	   -moz-transition: none;
+	        transition: none;
+	}
+
+.leaflet-zoom-anim .leaflet-zoom-hide {
+	visibility: hidden;
+	}
+
+
+/* cursors */
+
+.leaflet-interactive {
+	cursor: pointer;
+	}
+.leaflet-grab {
+	cursor: -webkit-grab;
+	cursor:    -moz-grab;
+	cursor:         grab;
+	}
+.leaflet-crosshair,
+.leaflet-crosshair .leaflet-interactive {
+	cursor: crosshair;
+	}
+.leaflet-popup-pane,
+.leaflet-control {
+	cursor: auto;
+	}
+.leaflet-dragging .leaflet-grab,
+.leaflet-dragging .leaflet-grab .leaflet-interactive,
+.leaflet-dragging .leaflet-marker-draggable {
+	cursor: move;
+	cursor: -webkit-grabbing;
+	cursor:    -moz-grabbing;
+	cursor:         grabbing;
+	}
+
+/* marker & overlays interactivity */
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-image-layer,
+.leaflet-pane > svg path,
+.leaflet-tile-container {
+	pointer-events: none;
+	}
+
+.leaflet-marker-icon.leaflet-interactive,
+.leaflet-image-layer.leaflet-interactive,
+.leaflet-pane > svg path.leaflet-interactive,
+svg.leaflet-image-layer.leaflet-interactive path {
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+
+/* visual tweaks */
+
+.leaflet-container {
+	background: #ddd;
+	outline-offset: 1px;
+	}
+.leaflet-container a {
+	color: #0078A8;
+	}
+.leaflet-zoom-box {
+	border: 2px dotted #38f;
+	background: rgba(255,255,255,0.5);
+	}
+
+
+/* general typography */
+.leaflet-container {
+	font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-size: 0.75rem;
+	line-height: 1.5;
+	}
+
+
+/* general toolbar styles */
+
+.leaflet-bar {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+	border-radius: 4px;
+	}
+.leaflet-bar a {
+	background-color: #fff;
+	border-bottom: 1px solid #ccc;
+	width: 26px;
+	height: 26px;
+	line-height: 26px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	color: black;
+	}
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	display: block;
+	}
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+	background-color: #f4f4f4;
+	}
+.leaflet-bar a:first-child {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	}
+.leaflet-bar a:last-child {
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-bottom: none;
+	}
+.leaflet-bar a.leaflet-disabled {
+	cursor: default;
+	background-color: #f4f4f4;
+	color: #bbb;
+	}
+
+.leaflet-touch .leaflet-bar a {
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	}
+.leaflet-touch .leaflet-bar a:first-child {
+	border-top-left-radius: 2px;
+	border-top-right-radius: 2px;
+	}
+.leaflet-touch .leaflet-bar a:last-child {
+	border-bottom-left-radius: 2px;
+	border-bottom-right-radius: 2px;
+	}
+
+/* zoom control */
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+	font: bold 18px 'Lucida Console', Monaco, monospace;
+	text-indent: 1px;
+	}
+
+.leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out  {
+	font-size: 22px;
+	}
+
+
+/* layers control */
+
+.leaflet-control-layers {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+	background: #fff;
+	border-radius: 5px;
+	}
+.leaflet-control-layers-toggle {
+	background-image: none;
+	width: 36px;
+	height: 36px;
+	}
+.leaflet-retina .leaflet-control-layers-toggle {
+	background-image: none;
+	background-size: 26px 26px;
+	}
+.leaflet-touch .leaflet-control-layers-toggle {
+	width: 44px;
+	height: 44px;
+	}
+.leaflet-control-layers .leaflet-control-layers-list,
+.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
+	display: none;
+	}
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+	display: block;
+	position: relative;
+	}
+.leaflet-control-layers-expanded {
+	padding: 6px 10px 6px 6px;
+	color: #333;
+	background: #fff;
+	}
+.leaflet-control-layers-scrollbar {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	padding-right: 5px;
+	}
+.leaflet-control-layers-selector {
+	margin-top: 2px;
+	position: relative;
+	top: 1px;
+	}
+.leaflet-control-layers label {
+	display: block;
+	font-size: 13px;
+	font-size: 1.08333em;
+	}
+.leaflet-control-layers-separator {
+	height: 0;
+	border-top: 1px solid #ddd;
+	margin: 5px -10px 5px -6px;
+	}
+
+/* Default icon URLs */
+.leaflet-default-icon-path { /* used only in path-guessing heuristic, see L.Icon.Default */
+	background-image: none;
+	}
+
+
+/* attribution and scale controls */
+
+.leaflet-container .leaflet-control-attribution {
+	background: #fff;
+	background: rgba(255, 255, 255, 0.8);
+	margin: 0;
+	}
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+	padding: 0 5px;
+	color: #333;
+	line-height: 1.4;
+	}
+.leaflet-control-attribution a {
+	text-decoration: none;
+	}
+.leaflet-control-attribution a:hover,
+.leaflet-control-attribution a:focus {
+	text-decoration: underline;
+	}
+.leaflet-attribution-flag {
+	display: inline !important;
+	vertical-align: baseline !important;
+	width: 1em;
+	height: 0.6669em;
+	}
+.leaflet-left .leaflet-control-scale {
+	margin-left: 5px;
+	}
+.leaflet-bottom .leaflet-control-scale {
+	margin-bottom: 5px;
+	}
+.leaflet-control-scale-line {
+	border: 2px solid #777;
+	border-top: none;
+	line-height: 1.1;
+	padding: 2px 5px 1px;
+	white-space: nowrap;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	background: rgba(255, 255, 255, 0.8);
+	text-shadow: 1px 1px #fff;
+	}
+.leaflet-control-scale-line:not(:first-child) {
+	border-top: 2px solid #777;
+	border-bottom: none;
+	margin-top: -2px;
+	}
+.leaflet-control-scale-line:not(:first-child):not(:last-child) {
+	border-bottom: 2px solid #777;
+	}
+
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	box-shadow: none;
+	}
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	border: 2px solid rgba(0,0,0,0.2);
+	background-clip: padding-box;
+	}
+
+
+/* popup */
+
+.leaflet-popup {
+	position: absolute;
+	text-align: center;
+	margin-bottom: 20px;
+	}
+.leaflet-popup-content-wrapper {
+	padding: 1px;
+	text-align: left;
+	border-radius: 12px;
+	}
+.leaflet-popup-content {
+	margin: 13px 24px 13px 20px;
+	line-height: 1.3;
+	font-size: 13px;
+	font-size: 1.08333em;
+	min-height: 1px;
+	}
+.leaflet-popup-content p {
+	margin: 17px 0;
+	margin: 1.3em 0;
+	}
+.leaflet-popup-tip-container {
+	width: 40px;
+	height: 20px;
+	position: absolute;
+	left: 50%;
+	margin-top: -1px;
+	margin-left: -20px;
+	overflow: hidden;
+	pointer-events: none;
+	}
+.leaflet-popup-tip {
+	width: 17px;
+	height: 17px;
+	padding: 1px;
+
+	margin: -10px auto 0;
+	pointer-events: auto;
+
+	-webkit-transform: rotate(45deg);
+	   -moz-transform: rotate(45deg);
+	    -ms-transform: rotate(45deg);
+	        transform: rotate(45deg);
+	}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+	background: white;
+	color: #333;
+	box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+	}
+.leaflet-container a.leaflet-popup-close-button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	border: none;
+	text-align: center;
+	width: 24px;
+	height: 24px;
+	font: 16px/24px Tahoma, Verdana, sans-serif;
+	color: #757575;
+	text-decoration: none;
+	background: transparent;
+	}
+.leaflet-container a.leaflet-popup-close-button:hover,
+.leaflet-container a.leaflet-popup-close-button:focus {
+	color: #585858;
+	}
+.leaflet-popup-scrolled {
+	overflow: auto;
+	}
+
+.leaflet-oldie .leaflet-popup-content-wrapper {
+	-ms-zoom: 1;
+	}
+.leaflet-oldie .leaflet-popup-tip {
+	width: 24px;
+	margin: 0 auto;
+
+	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";
+	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678);
+	}
+
+.leaflet-oldie .leaflet-control-zoom,
+.leaflet-oldie .leaflet-control-layers,
+.leaflet-oldie .leaflet-popup-content-wrapper,
+.leaflet-oldie .leaflet-popup-tip {
+	border: 1px solid #999;
+	}
+
+
+/* div icon */
+
+.leaflet-div-icon {
+	background: #fff;
+	border: 1px solid #666;
+	}
+
+
+/* Tooltip */
+/* Base styles for the element that has a tooltip */
+.leaflet-tooltip {
+	position: absolute;
+	padding: 6px;
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 3px;
+	color: #222;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+	}
+.leaflet-tooltip.leaflet-interactive {
+	cursor: pointer;
+	pointer-events: auto;
+	}
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	position: absolute;
+	pointer-events: none;
+	border: 6px solid transparent;
+	background: transparent;
+	content: "";
+	}
+
+/* Directions */
+
+.leaflet-tooltip-bottom {
+	margin-top: 6px;
+}
+.leaflet-tooltip-top {
+	margin-top: -6px;
+}
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-top:before {
+	left: 50%;
+	margin-left: -6px;
+	}
+.leaflet-tooltip-top:before {
+	bottom: 0;
+	margin-bottom: -12px;
+	border-top-color: #fff;
+	}
+.leaflet-tooltip-bottom:before {
+	top: 0;
+	margin-top: -12px;
+	margin-left: -6px;
+	border-bottom-color: #fff;
+	}
+.leaflet-tooltip-left {
+	margin-left: -6px;
+}
+.leaflet-tooltip-right {
+	margin-left: 6px;
+}
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	top: 50%;
+	margin-top: -6px;
+	}
+.leaflet-tooltip-left:before {
+	right: 0;
+	margin-right: -12px;
+	border-left-color: #fff;
+	}
+.leaflet-tooltip-right:before {
+	left: 0;
+	margin-left: -12px;
+	border-right-color: #fff;
+	}
+
+/* Printing */
+
+@media print {
+	/* Prevent printers from removing background-images of controls. */
+	.leaflet-control {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+		}
+	}
+
+</style>
+<style>
+:root{
+  --ground:#F4F2EC;--surface:#FFFFFF;--surface-2:#FAF9F5;--ink:#1A2730;--muted:#5D6873;
+  --line:#DEDACF;--line-strong:#C7C1B2;--accent:#B24A1C;--accent-soft:#F4E4D8;--accent-ink:#8C3A15;
+  --good:#1C6B57;--ok:#2C6E4A;--fair:#7A5A16;--weak:#8B4220;--bad:#93332B;
+  --map-bg:#E9E5DB;--hw-main:#41505A;--hw-trunk:#2B3941;--hw-sec:#8C959B;--pop:#FFFFFF;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#12181C;--surface:#1A2228;--surface-2:#202A31;--ink:#EDEAE2;--muted:#9BA7B0;
+  --line:#2C3941;--line-strong:#3C4C56;--accent:#E2884F;--accent-soft:#3A2519;--accent-ink:#F0A874;
+  --good:#6FC9AC;--ok:#8CCBA4;--fair:#DCB865;--weak:#E8A67F;--bad:#EF9A90;
+  --map-bg:#1C242A;--hw-main:#A3B3BD;--hw-trunk:#C9D6DE;--hw-sec:#65747E;--pop:#1A2228;}}
+:root[data-theme="dark"]{
+  --ground:#12181C;--surface:#1A2228;--surface-2:#202A31;--ink:#EDEAE2;--muted:#9BA7B0;
+  --line:#2C3941;--line-strong:#3C4C56;--accent:#E2884F;--accent-soft:#3A2519;--accent-ink:#F0A874;
+  --good:#6FC9AC;--ok:#8CCBA4;--fair:#DCB865;--weak:#E8A67F;--bad:#EF9A90;
+  --map-bg:#1C242A;--hw-main:#A3B3BD;--hw-trunk:#C9D6DE;--hw-sec:#65747E;--pop:#1A2228;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:'IBM Plex Sans Thai',system-ui,sans-serif;font-size:15px;line-height:1.55}
+h1,h2,h3{font-family:'Kanit','IBM Plex Sans Thai',sans-serif;font-weight:500;margin:0;text-wrap:balance}
+.wrap{padding:0 16px;padding-block:18px 26px;max-width:1520px;margin:0 auto}
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;padding-bottom:13px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);font-weight:600;margin:0}
+h1{font-size:clamp(22px,3.2vw,30px);line-height:1.2}
+.sub{color:var(--muted);font-size:13.5px;max-width:66ch;margin:4px 0 0}
+.banner{margin-top:13px;background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent-ink);border-radius:10px;padding:10px 13px;font-size:13px;line-height:1.5}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;margin-top:14px;align-items:start}
+@media (max-width:1020px){.layout{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+#map{height:min(68vh,660px);min-height:420px;border-radius:14px;background:var(--map-bg);z-index:0}
+@media (max-width:1020px){#map{height:58vh;min-height:360px}}
+.maptools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface-2);border-radius:14px 14px 0 0}
+.tg{display:inline-flex;align-items:center;gap:7px;font-size:13px;background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;padding:6px 12px;cursor:pointer;font-family:inherit;color:inherit}
+.tg[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.tg .d{width:9px;height:9px;border-radius:50%;background:var(--line-strong)}
+.tg[aria-pressed="true"] .d{background:var(--accent)}
+.grow{flex:1 1 auto}
+.mini{font-size:12.5px;color:var(--muted)}
+.pad{padding:14px}
+.seclabel{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px}
+.legendrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:7px;border-radius:9px;border:1px solid transparent}
+.lmid{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.legendrow:hover{background:var(--surface-2);border-color:var(--line)}
+.legendrow[data-sel="1"]{background:var(--accent-soft);border-color:var(--accent)}
+.lbadge{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;color:#fff;font-weight:600;font-size:13px;cursor:pointer;border:none;font-family:inherit}
+.lname{min-width:0;cursor:pointer;background:none;border:none;color:inherit;font-family:inherit;font-size:13.5px;line-height:1.3;text-align:left;padding:0;white-space:normal}
+.lscore{font-variant-numeric:tabular-nums;font-weight:600;font-size:13.5px}
+.gpill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;border:1px solid;white-space:nowrap}
+.gpill.pass{border-color:var(--good);color:var(--good)}
+.gpill.block{border-color:var(--bad);color:var(--bad)}
+.gpill.pending{border-color:var(--fair);color:var(--fair)}
+.legendrow[data-gate="block"] .lname,.legendrow[data-gate="block"] .lscore{opacity:.55;text-decoration:line-through;text-decoration-thickness:1px}
+.gbanner{border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5;border:1px solid;margin-bottom:10px}
+.gbanner.pass{background:var(--surface-2);border-color:var(--good);color:var(--good)}
+.gbanner.block{background:var(--surface-2);border-color:var(--bad);color:var(--bad)}
+.gbanner.pending{background:var(--surface-2);border-color:var(--fair);color:var(--fair)}
+.gbanner b{font-weight:600}
+.sw{appearance:none;width:34px;height:20px;border-radius:999px;background:var(--line-strong);position:relative;cursor:pointer;border:none;flex:none;transition:background .15s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s}
+.sw:checked{background:var(--accent)}
+.sw:checked::after{left:17px}
+.sw:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.swlab{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+.rowhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.linkbtn{background:none;border:none;color:var(--accent-ink);font-family:inherit;font-size:12.5px;cursor:pointer;padding:2px 4px;text-decoration:underline}
+.detail h2{font-size:19px;line-height:1.28;margin-top:2px}
+.coord{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--muted);word-break:break-all}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.chip{font-size:12px;padding:4px 9px;border-radius:999px;border:1px solid var(--line-strong);color:var(--muted)}
+.chip.road{border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip.newpt{border-color:var(--good);color:var(--good);font-weight:600}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
+.btn{display:flex;align-items:center;justify-content:center;text-align:center;font-family:inherit;font-size:13.5px;font-weight:500;padding:9px 10px;border-radius:9px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink);cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{color:#fff;filter:brightness(1.06)}
+.btn.full{grid-column:1/-1}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.sec{margin-top:15px;padding-top:13px;border-top:1px solid var(--line)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:13.5px;border-bottom:1px dashed var(--line)}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--muted)}
+.kv .v{font-variant-numeric:tabular-nums;font-weight:500;text-align:right}
+.r5{color:var(--good)}.r4{color:var(--ok)}.r3{color:var(--fair)}.r2{color:var(--weak)}.r1{color:var(--bad)}
+.jx{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.jx:last-child{border-bottom:none}
+.jx .d{font-variant-numeric:tabular-nums;font-weight:600;min-width:68px;text-align:right}
+.jx .w{color:var(--muted);font-size:12.5px}
+.jx.here .d{color:var(--accent-ink)}
+.flag{margin-top:11px;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5;border:1px solid}
+.flag.warn{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+.flag.note{background:var(--surface-2);border-color:var(--line);color:var(--muted)}
+.zthumb{margin-top:10px;width:100%;border-radius:10px;border:1px solid var(--line);display:block;cursor:zoom-in}
+table.sens{width:100%;border-collapse:collapse;font-size:13px}
+table.sens th,table.sens td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+table.sens th{color:var(--muted);font-weight:600;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+table.sens td.w{font-weight:600;color:var(--accent-ink);font-variant-numeric:tabular-nums}
+.leaflet-container{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--map-bg)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--pop);color:var(--ink);box-shadow:0 3px 14px rgba(0,0,0,.25)}
+.leaflet-popup-content{margin:11px 13px;font-size:13.5px}
+.leaflet-popup-content b{font-family:'Kanit',sans-serif;font-weight:500}
+.leaflet-bar a{background:var(--surface);color:var(--ink);border-bottom-color:var(--line)}
+.leaflet-bar a:hover{background:var(--surface-2);color:var(--ink)}
+.leaflet-control-attribution{background:rgba(255,255,255,.75);color:#333}
+.pinlbl{font-family:'IBM Plex Sans Thai',sans-serif;font-weight:600;font-size:12px;color:#fff;text-align:center;line-height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+.roadlbl{background:none;border:none;box-shadow:none;font-size:11.5px;font-weight:600;color:var(--hw-main);white-space:nowrap;text-shadow:0 0 4px var(--map-bg),0 0 4px var(--map-bg),0 0 4px var(--map-bg)}
+.jxlbl{background:none;border:none;box-shadow:none;font-size:11.5px;font-weight:600;color:var(--ink);opacity:.85;white-space:nowrap;text-shadow:0 0 4px var(--map-bg),0 0 4px var(--map-bg),0 0 4px var(--map-bg)}
+dialog.lb{border:none;padding:0;background:transparent;max-width:min(1180px,94vw);width:100%}
+dialog.lb::backdrop{background:rgba(10,14,17,.82)}
+.lbbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.lbhead{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line)}
+.lbbox img{display:block;width:100%;height:auto}
+.lbfoot{padding:10px 14px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+footer.note{margin-top:16px;font-size:12.5px;color:var(--muted);line-height:1.6}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+</head><body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">Hub 5 · 6 ทำเล · คำนวณใหม่หลังตรวจผังเมือง</p>
+      <h1>แผนที่เปรียบเทียบทำเล</h1>
+      <p class="sub">เปิด-ปิดได้ทีละจุดหรือหลายจุดพร้อมกัน พร้อมรัศมี 80 กม. แยกของแต่ละจุด · กดหมุดเพื่อดูรายละเอียด ผังเมือง และจุดตัดถนนที่ใกล้ที่สุด</p>
+    </div>
+    <div class="mini">พิกัดจากการลงพื้นที่ และหมุดสาธารณะที่ตรวจสอบแล้ว</div>
+  </header>
+  <div class="banner"><b>คะแนนกับผังเมืองเป็นคนละชั้นกัน</b> — ตารางคะแนนวัดเฉพาะทำเล ไม่ได้หักผังเมือง จุดที่ขึ้นว่า “ผังเมืองไม่ผ่าน” คือที่ดินประเภท ก.3 ชนบทและเกษตรกรรม ซึ่งข้อห้าม (2) ระบุว่าห้าม “คลังน้ำมันตามกฎหมายว่าด้วยการควบคุมน้ำมันเชื้อเพลิง เพื่อการจำหน่าย” · กดปุ่ม “ซ่อนจุดที่ผังเมืองไม่ผ่าน” เพื่อดูเฉพาะจุดที่เหลือ</div>
+  
+
+  <div class="layout">
+    <div class="card">
+      <div class="maptools">
+        <button class="tg" id="tAll" aria-pressed="true"><span class="d"></span>แสดงทุกจุด</button>
+        <button class="tg" id="tRadAll" aria-pressed="false"><span class="d"></span>รัศมี 80 กม. ทุกจุด</button>
+        <button class="tg" id="tJx" aria-pressed="true"><span class="d"></span>จุดตัดถนน</button>
+        <button class="tg" id="tRef" aria-pressed="true"><span class="d"></span>ธนาคาร &amp; คลังน้ำมัน</button>
+        <button class="tg" id="tGate" aria-pressed="false"><span class="d"></span>ซ่อนจุดที่ผังเมืองไม่ผ่าน</button>
+        <button class="tg" id="tFit" aria-pressed="false"><span class="d"></span>ซูมให้พอดีจุดที่เปิด</button>
+        <span class="grow"></span>
+        <span class="mini" id="mstat"></span>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+      <div class="card pad">
+        <div class="rowhead">
+          <div class="seclabel" style="margin:0">อันดับ · เปิดปิดจุด และรัศมี</div>
+          <div><button class="linkbtn" id="selOnly">เลือกเฉพาะอันดับ 1</button></div>
+        </div>
+        <div id="legend"></div>
+      </div>
+      <div class="card pad detail" id="detail"></div>
+      <div class="card pad">
+        <div class="seclabel">ทดสอบความไว · เปลี่ยนน้ำหนัก 6 แบบ</div>
+        <table class="sens"><thead><tr><th>ถ้าให้ความสำคัญกับ</th><th>อันดับ 1</th><th>2</th><th>3</th></tr></thead><tbody id="sens"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">
+    แนวถนนบนแผนที่ลากผ่านหมุดที่ยืนยันแล้ว ใช้ดูความสัมพันธ์เชิงตำแหน่งได้ แต่ไม่ใช่แนวถนนจริงระดับเมตร · ระยะถึงคลังน้ำมันเป็นการประมาณจากพิกัดจริงคูณตัวอ้อม ยังไม่ได้วัดจาก Google Maps · ระยะถึงจุดตัดถนนเป็นระยะเส้นตรง · พิกัดแยกสีคิ้วเป็นค่าประมาณจากหมุดธนาคารในตัวอำเภอ
+  </footer>
+</div>
+
+<dialog class="lb" id="lb">
+  <div class="lbbox">
+    <div class="lbhead"><h3 id="lbTitle">ผังเมือง</h3><button class="btn" id="lbClose">ปิด</button></div>
+    <img id="lbImg" alt="">
+    <div class="lbfoot" id="lbFoot"></div>
+  </div>
+</dialog>
+
+<script>
+const CFG = {"data": {"points": [{"id": "N3", "rank": 1, "score": 77.0, "color": "#B24A1C", "name": "ทล.201 ย่านแยกสีคิ้ว", "full": "ทล.201 ช่วงเหนือแยกสีคิ้ว · ย่านหมวดทางหลวงสีคิ้ว", "lat": 14.93387754, "lon": 101.68269553799, "src": "หมุดหมวดทางหลวงสีคิ้ว (Longdo) · ที่อยู่ระบุ ทล.201", "road": "ทล.201 · ทางหลวงแผ่นดินสายหลัก", "area": "อ.สีคิ้ว จ.นครราชสีมา", "isNew": true, "rates": {"A": 4, "B": 3, "C": 5, "G": 5, "D": 4, "E": 3, "F": 3}, "bank": ["ธนาคาร สีคิ้ว", "6.8 กม."], "depots": [["คลังโคราช (ถนน)", "~53 กม."], ["คลังสระบุรี (ถนน)", "~119 กม."], ["คลังระยอง (ถนน)", "~359 กม."]], "jx": [[6.8, "ย่านแยกสีคิ้ว ทล.201 × ทล.2 มิตรภาพ", "ตะวันออกเฉียงใต้"], [32.4, "แยก ทล.201 × ทล.2217 ด่านขุนทด", "เหนือ"], [55.5, "สี่แยกหนองบัวโคก ทล.201 × ทล.205", "เหนือ"]], "gateWhy": "ภาพผังเมืองที่ส่งมาแสดงว่าพิกัดนี้อยู่ในที่ดินประเภท ก.3 บริเวณ 3.2 ซึ่งข้อห้าม (2) ห้ามคลังน้ำมันเพื่อการจำหน่าย", "gate": "block", "zone": {"type": "ชนบทและเกษตรกรรม (ก.3) บริเวณ 3.2", "plan": "ผังเมืองรวมจังหวัดนครราชสีมา · ประกาศใช้ 19 ม.ค. 2560", "img": "img/zone-n3.jpg"}, "warn": "ผังสีเขียว ก.3 ข้อห้ามชุดเดียวกับจุดในด่านขุนทด — ข้อ (2) ห้ามคลังน้ำมันเพื่อการจำหน่าย", "note": "ใกล้คลังน้ำมันทั้งโคราชและสระบุรีที่สุดอย่างชัดเจน แต่ผังเป็น ก.3 เหมือนฝั่งด่านขุนทด จึงติดข้อห้ามเดียวกัน", "why": "ชนะเพราะต้นทุนขนส่งและความมั่นคงซัพพลาย แต่ห่างด่านขุนทด 32 กม. และอยู่ในย่านที่แบรนด์ใหญ่ลงมาก่อนหนาแน่น"}, {"id": "P1", "rank": 2, "score": 74.4, "color": "#2C6E4A", "name": "ทล.201 ใต้เมืองด่านขุนทด", "full": "ทล.201 ช่วงใต้ตัวเมือง · ย่าน ทต.ด่านขุนทด", "lat": 15.176628759580181, "lon": 101.74326898202865, "src": "ลงพื้นที่สำรวจจริง", "road": "ทล.201 · ทางหลวงแผ่นดินสายหลัก", "area": "ต.ด่านขุนทด อ.ด่านขุนทด จ.นครราชสีมา", "isNew": false, "rates": {"A": 4, "B": 4, "C": 3, "G": 5, "D": 3, "E": 4, "F": 3}, "bank": ["กลุ่มธนาคาร ด่านขุนทด", "4.2 กม."], "depots": [["คลังโคราช (ถนน)", "~82 กม."], ["คลังสระบุรี (ถนน)", "~150 กม."], ["คลังระยอง (ถนน)", "~358 กม."]], "jx": [[4.7, "แยก ทล.201 × ทล.2217 ด่านขุนทด", "ตะวันออกเฉียงเหนือ"], [27.8, "สี่แยกหนองบัวโคก ทล.201 × ทล.205", "เหนือ"], [32.2, "ย่านแยกสีคิ้ว ทล.201 × ทล.2", "ใต้"]], "gateWhy": "อยู่ในที่ดินประเภท ก.3 ชนบทและเกษตรกรรม ซึ่งข้อห้าม (2) ห้ามคลังน้ำมันเพื่อการจำหน่าย", "gate": "block", "zone": {"type": "ชนบทและเกษตรกรรม (ก.3)", "plan": "ผังเมืองรวมจังหวัดนครราชสีมา · ประกาศใช้ 19 ม.ค. 2560", "img": "img/zone-p1.jpg"}, "warn": "ผังสีเขียว ก.3 ห้ามใช้ที่ดินเพื่อคลังน้ำมันเพื่อการจำหน่าย และคลังก๊าซปิโตรเลียมเหลว — สถานีบริการเป็นคนละประเภทกับคลัง ต้องแยกให้ชัดก่อนซื้อ", "note": "ในภาพผัง มีเขตสีแดง (ชุมชน) ห่างไปทางตะวันออกเฉียงเหนือไม่กี่ร้อยเมตร ซึ่งมักเปิดกว้างกว่าสำหรับกิจการพาณิชย์", "why": "จุดที่สมดุลที่สุดในพื้นที่เป้าหมายเดิม ใกล้ธนาคาร มีชุมชนรองรับ และใกล้คลังสระบุรีเป็นอันดับสอง"}, {"id": "N1", "rank": 3, "score": 67.6, "color": "#7A5A16", "name": "เหนือแยก ทล.201 × ทล.2217", "full": "เหนือแยก ทล.201 × ทล.2217 ขึ้นไป 2.1 กม. (จุดที่ย้ายมา)", "lat": 15.234073050302959, "lon": 101.76197794989905, "src": "พิกัดใหม่จากผู้ใช้ · ย้ายจากแยกเดิมเพราะติดผังเมือง", "isNew": true, "moved": {"lat": 15.215061444085, "lon": 101.76161837764, "why": "จุดเดิมที่แยก ทล.201 × ทล.2217 เป็นผัง ก.3 บริเวณ 3.2 ซึ่งห้ามคลังน้ำมันเพื่อการจำหน่าย"}, "road": "ริมทางหลวง · ยังไม่ยืนยันว่าเป็น ทล.201 หรือ ทล.2217", "area": "ต.ด่านขุนทด อ.ด่านขุนทด จ.นครราชสีมา", "rates": {"A": 3, "B": 4, "C": 3, "G": 4, "D": 3, "E": 3, "F": 4}, "bank": ["กลุ่มธนาคาร ด่านขุนทด", "3.0 กม."], "depots": [["คลังโคราช (ถนน)", "~90 กม."], ["คลังสระบุรี (ถนน)", "~157 กม."], ["คลังระยอง (ถนน)", "~360 กม."]], "jx": [[2.1, "แยก ทล.201 × ทล.2217 ด่านขุนทด", "ใต้"], [21.1, "สี่แยกหนองบัวโคก ทล.201 × ทล.205", "เหนือ"], [37.9, "แยกจัตุรัส ทล.201 × ทล.2179", "เหนือ"]], "gateWhy": "ย้ายมาจากจุดเดิมที่ติด ก.3 บริเวณ 3.2 แล้ว แต่ยังไม่มีภาพผังเมืองของพิกัดใหม่มายืนยัน", "gate": "pending", "zone": {"type": "ยังไม่มีภาพของพิกัดใหม่", "plan": "ภาพด้านล่างคือผังของจุดเดิมก่อนย้าย · ก.3 บริเวณ 3.2 · ผังเมืองรวมนครราชสีมา ประกาศ 19 ม.ค. 2560", "img": "img/zone-n1-old.jpg"}, "warn": "จุดเดิมที่แยกเป็นผังสีเขียว ก.3 บริเวณ 3.2 ข้อห้ามชุดเดียวกับอีกสองจุดในด่านขุนทด — สมมติฐานว่าย่านในเมืองจะเป็นผังสีแดงจึงไม่จริง เขตชุมชนสีแดง (1.24) อยู่ทางใต้ของแยก ไม่ใช่ที่แยก · ยังรอภาพผังของพิกัดใหม่", "note": "ยังต้องยืนยันว่าแปลงนี้ติด ทล.201 หรือ ทล.2217 — ถ้าติด ทล.201 สายหลัก คะแนนจะเป็น 72.0 แทน 67.6 แต่อันดับยังเป็นที่ 3 ทั้งสองกรณี", "why": "ย้ายขึ้นเหนือ 2.1 กม. แล้วได้ธนาคารใกล้ขึ้นเป็น 3.0 กม. และพ้นย่านเมืองเก่า แลกกับระยะไปคลังที่ไกลขึ้นเล็กน้อย"}, {"id": "P2", "rank": 4, "score": 65.4, "color": "#6B4A8A", "name": "ทล.201 เหนือเมือง หนองบัวตะเกียด", "full": "ทล.201 ช่วงเหนือตัวเมือง · ทต.หนองบัวตะเกียด", "lat": 15.261879478379742, "lon": 101.78969899930964, "src": "ลงพื้นที่สำรวจจริง", "isNew": false, "road": "ทล.201 · ทางหลวงแผ่นดินสายหลัก", "area": "ต.หนองบัวตะเกียด อ.ด่านขุนทด จ.นครราชสีมา", "rates": {"A": 4, "B": 3, "C": 2, "G": 4, "D": 3, "E": 3, "F": 4}, "bank": ["กลุ่มธนาคาร ด่านขุนทด", "6.6 กม."], "depots": [["คลังโคราช (ถนน)", "~94 กม."], ["คลังสระบุรี (ถนน)", "~161 กม."], ["คลังระยอง (ถนน)", "~360 กม."]], "jx": [[6.0, "แยก ทล.201 × ทล.2217 ด่านขุนทด", "ตะวันตกเฉียงใต้"], [17.2, "สี่แยกหนองบัวโคก ทล.201 × ทล.205", "เหนือ"], [34.3, "แยกจัตุรัส ทล.201 × ทล.2179", "เหนือ"]], "gateWhy": "อยู่ในที่ดินประเภท ก.3 ชนบทและเกษตรกรรม ซึ่งข้อห้าม (2) ห้ามคลังน้ำมันเพื่อการจำหน่าย", "gate": "block", "zone": {"type": "ชนบทและเกษตรกรรม (ก.3)", "plan": "ผังเมืองรวมจังหวัดนครราชสีมา · ประกาศใช้ 19 ม.ค. 2560", "img": "img/zone-p2.jpg"}, "warn": "ผังสีเขียว ก.3 ข้อห้ามชุดเดียวกับจุด ทล.201 ใต้เมือง — ห้ามคลังน้ำมันเพื่อการจำหน่าย", "note": "รอบจุดนี้เป็นสีเขียวทั้งผืน ไม่มีเขตชุมชนสีแดงใกล้ในภาพ จึงหาแปลงที่ผังเปิดให้ทำคลังได้ยากกว่า", "why": "ที่ดินหาง่ายและถูกกว่า แต่อยู่เหนือเมือง จึงไกลทั้งธนาคารและคลังน้ำมันขึ้นทุกทาง"}, {"id": "P3", "rank": 5, "score": 62.0, "color": "#1C6B57", "name": "สี่แยกหนองบัวโคก", "full": "สี่แยกหนองบัวโคก ทล.201 × ทล.205", "lat": 15.4108, "lon": 101.834, "src": "ลงพื้นที่สำรวจจริง", "isNew": false, "road": "ทล.201 × ทล.205 · จุดตัดทางหลวงแผ่นดินสองสาย", "area": "ต.หนองบัวโคก อ.จัตุรัส จ.ชัยภูมิ", "rates": {"A": 4, "B": 1, "C": 5, "G": 3, "D": 5, "E": 2, "F": 1}, "bank": ["ธ.กรุงไทย จัตุรัส", "17.2 กม."], "depots": [["คลังโคราช (ถนน)", "~64 กม."], ["คลังสระบุรี (ถนน)", "~180 กม."], ["คลังระยอง (ถนน)", "~371 กม."]], "jx": [[0, "สี่แยกหนองบัวโคก ทล.201 × ทล.205", "อยู่ที่จุดตัดเอง"], [17.2, "แยกจัตุรัส ทล.201 × ทล.2179", "เหนือ"], [23.1, "แยก ทล.201 × ทล.2217 ด่านขุนทด", "ใต้"]], "gateWhy": "จุดนี้อยู่เขตชัยภูมิ ต้องใช้ผังเมืองรวมจังหวัดชัยภูมิ ไม่ใช่ผังนครราชสีมา · ยังไม่ได้ตรวจ", "gate": "pending", "zone": {"type": "ชนบทและเกษตรกรรม (ก.3)", "plan": "ภาพที่ค้นได้อ้างอิงผังเมืองรวมจังหวัดนครราชสีมา", "img": "img/zone-p3.jpg"}, "warn": "จุดนี้อยู่ในเขตชัยภูมิ แต่ภาพผังที่ได้อ้างอิงผังนครราชสีมา — ต้องเปิดผังเมืองรวมชัยภูมิยืนยันใหม่", "note": "กระจายได้ 4 ทิศและใกล้คลังโคราชที่สุดในกลุ่มด่านขุนทด-ชัยภูมิ แต่ธนาคารใกล้สุดอยู่ที่จัตุรัส 17 กม.", "why": "ชนะขาดด้านโลจิสติกส์ แต่แพ้เรื่องเงินสดรายวัน ฐานหน้าร้าน และที่ดินหัวมุมที่เครือใหญ่จับจองแล้ว"}, {"id": "P4", "rank": 6, "score": 56.4, "color": "#8C3A66", "name": "ทล.2 มิตรภาพ ใกล้แยกสีดา", "full": "ทล.2 มิตรภาพ ห่างแยกสีดา 2.3 กม.", "lat": 15.527682023448545, "lon": 102.54266382608927, "src": "ลงพื้นที่สำรวจจริง", "isNew": false, "road": "ทล.2 มิตรภาพ · สายประธาน 4 ช่องแบ่งทิศทาง", "area": "อ.สีดา จ.นครราชสีมา", "rates": {"A": 5, "B": 1, "C": 3, "G": 1, "D": 5, "E": 2, "F": 1}, "bank": ["ธ.กรุงไทย บัวใหญ่", "14.2 กม."], "depots": [["คลังโคราช (ถนน)", "~85 กม."], ["คลังสระบุรี (ถนน)", "~242 กม."], ["คลังระยอง (ถนน)", "~395 กม."]], "jx": [[2.3, "แยกสีดา ทล.2 × ทล.202", "เหนือ"], [74.8, "แยกจัตุรัส ทล.201 × ทล.2179", "ตะวันตก"], [77.0, "สี่แยกหนองบัวโคก ทล.201 × ทล.205", "ตะวันตก"]], "gateWhy": "ผู้ใช้ตรวจภาพผังเมืองแล้วยืนยันว่าผ่าน · ที่ดินประเภท ก.1", "gate": "pass", "zone": {"type": "ชนบทและเกษตรกรรม (ก.1)", "plan": "ผู้ใช้ตรวจแล้วว่าผ่านเงื่อนไขผังเมือง", "img": "img/zone-p4.jpg"}, "warn": "เป็นจุดเดียวที่ยืนยันแล้วว่าผ่านเงื่อนไขผังเมือง — ผัง ก.1 คนละชั้นกับ ก.3 ที่ติดข้อห้ามคลังน้ำมัน", "note": "ถนนดีที่สุดและกระจายได้ 4 ทิศบนสายประธาน แต่ไกลคลังสระบุรีที่สุด และห่างด่านขุนทด 90 กม.", "why": "เหมาะเฉพาะกรณีที่ยอมย้ายตลาดเป้าหมายไปฝั่งมิตรภาพทั้งหมด"}], "junctions": [{"n": "แยก ทล.201 × ทล.2217", "s": "ตัวเมืองด่านขุนทด", "lat": 15.215061444085, "lon": 101.76161837764}, {"n": "สี่แยกหนองบัวโคก ทล.201 × ทล.205", "s": "สี่แยกไฟแดง อ.จัตุรัส", "lat": 15.4108, "lon": 101.834}, {"n": "แยกจัตุรัส ทล.201 × ทล.2179", "s": "ตัวเมืองจัตุรัส", "lat": 15.565194129946, "lon": 101.84559631348}, {"n": "แยกสีดา ทล.2 × ทล.202", "s": "บนมิตรภาพ อ.สีดา", "lat": 15.547280809899, "lon": 102.54795715213}, {"n": "ย่านแยกสีคิ้ว ทล.201 × ทล.2", "s": "ต้นทาง ทล.201 · พิกัดประมาณ", "lat": 14.887581, "lon": 101.724025}], "refs": [{"n": "ธนาคาร ด่านขุนทด", "t": "bank", "lat": 15.2072, "lon": 101.7668}, {"n": "ธนาคาร จัตุรัส", "t": "bank", "lat": 15.5647, "lon": 101.85006}, {"n": "ธนาคาร บัวใหญ่", "t": "bank", "lat": 15.587898, "lon": 102.425339}, {"n": "ธนาคาร สีคิ้ว", "t": "bank", "lat": 14.887581, "lon": 101.724025}, {"n": "คลังน้ำมันโคราช (พร็อกซี อ.เมือง)", "t": "depot", "lat": 14.9799, "lon": 102.0977}, {"n": "คลังน้ำมันสระบุรี ต.เสาไห้", "t": "depot", "lat": 14.528224945074, "lon": 100.85852050781}], "roads": [{"n": "ทล.2 มิตรภาพ", "labAt": 7, "dx": -12, "dy": -8, "cls": "trunk", "pts": [[14.5, 101.08], [14.63, 101.33], [14.74, 101.52], [14.8876, 101.724], [14.897, 101.843], [14.9799, 102.0977], [15.19, 102.26], [15.4, 102.44], [15.5473, 102.548], [15.72, 102.62]]}, {"n": "ทล.201", "labAt": 2, "dx": 34, "dy": 6, "cls": "main", "pts": [[14.8876, 101.724], [14.9339, 101.6827], [15.05, 101.72], [15.1766, 101.7433], [15.2151, 101.7616], [15.2619, 101.7897], [15.335, 101.812], [15.4108, 101.834], [15.5652, 101.8456], [15.806, 102.031]]}, {"n": "ทล.205 สุรนารายณ์", "labAt": 3, "dx": -10, "dy": 18, "cls": "main", "pts": [[15.47, 101.55], [15.4108, 101.834], [15.32, 101.93], [15.1833, 102.0], [14.9799, 102.0977]]}, {"n": "ทล.2217", "labAt": 3, "dx": 18, "dy": 4, "cls": "sec", "pts": [[15.2151, 101.7616], [15.2639, 101.7549], [15.311, 101.7463], [15.4, 101.66]]}, {"n": "ทล.202", "labAt": 0, "dx": -8, "dy": 16, "cls": "main", "pts": [[15.63, 102.3], [15.5879, 102.4253], [15.5473, 102.548], [15.55, 102.73]]}, {"n": "ทล.2179", "labAt": 1, "dx": -30, "dy": -6, "cls": "sec", "pts": [[15.5652, 101.8456], [15.59, 101.93]]}]}, "crit": [["ชั้นถนน / รับรถหนัก", "A"], ["ใกล้ธนาคาร", "B"], ["ต้นทุนวิ่งคลังโคราช", "C"], ["คลังสำรองสระบุรี", "G"], ["กระจายหลายทิศ", "D"], ["ลูกค้าหน้าร้าน", "E"], ["ที่ดิน / คู่แข่ง", "F"]], "sens": [["น้ำหนักฐาน", "N3 77.0", "P1 74.4", "N1 67.6"], ["รถเทรลเลอร์เป็นหลัก", "N3 78.4", "P1 74.0", "P3 68.8"], ["เงินสดรายวันเป็นหลัก", "P1 76.0", "N3 73.2", "N1 69.6"], ["ต้นทุนขนส่งเป็นหลัก", "N3 83.2", "P1 73.2", "P3 72.0"], ["หน้าร้านค้าปลีกเป็นหลัก", "P1 75.6", "N3 72.4", "N1 66.0"], ["ความมั่นคงซัพพลายเป็นหลัก", "N3 82.4", "P1 76.8", "N1 68.4"]], "tiles": true};
+const D = CFG.data, CRIT = CFG.crit, SENS = CFG.sens, USE_TILES = CFG.tiles;
+const RATE={5:['ดีมาก','r5'],4:['ดี','r4'],3:['พอใช้','r3'],2:['อ่อน','r2'],1:['อ่อนมาก','r1']};
+const GATE={pass:['ผังเมืองผ่าน','pass'],block:['ผังเมืองไม่ผ่าน','block'],pending:['ผังเมืองยังไม่ยืนยัน','pending']};
+const gateOf=p=>GATE[p.gate]||GATE.pending;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const state={on:new Set(D.points.map(p=>p.id)),rad:new Set(),sel:D.points[0].id,jx:true,ref:true,gateOnly:false};
+const visible=p=>state.on.has(p.id)&&(!state.gateOnly||p.gate!=='block');
+
+const map=L.map('map',{zoomControl:true,scrollWheelZoom:true}).setView([15.25,101.95],9);
+if(USE_TILES){
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,
+    attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+}
+L.control.scale({imperial:false,metric:true}).addTo(map);
+
+const paneRoads=map.createPane('roads');paneRoads.style.zIndex=380;
+const paneRad=map.createPane('rad');paneRad.style.zIndex=370;
+
+const gRoads=L.layerGroup([],{pane:'roads'}).addTo(map);
+const gJx=L.layerGroup().addTo(map);
+const gRef=L.layerGroup().addTo(map);
+const gRad=L.layerGroup().addTo(map);
+const gPts=L.layerGroup().addTo(map);
+
+function drawRoads(){
+  gRoads.clearLayers();
+  if(USE_TILES) return;
+  D.roads.forEach(r=>{
+    const col=r.cls==='trunk'?css('--hw-trunk'):r.cls==='sec'?css('--hw-sec'):css('--hw-main');
+    const w=r.cls==='trunk'?6:r.cls==='sec'?3:4.5;
+    L.polyline(r.pts,{pane:'roads',color:col,weight:w,opacity:.85,lineJoin:'round'}).addTo(gRoads);
+    const li=(r.labAt!=null?r.labAt:Math.floor(r.pts.length/2));
+    const m=r.pts[Math.min(li,r.pts.length-1)];
+    L.marker(m,{pane:'roads',interactive:false,icon:L.divIcon({className:'roadlbl',html:r.n,iconSize:[0,0],iconAnchor:[(r.dx||-16),(r.dy||14)]})}).addTo(gRoads);
+  });
+}
+function drawJx(){
+  gJx.clearLayers();if(!state.jx)return;
+  D.junctions.forEach(j=>{
+    L.circleMarker([j.lat,j.lon],{radius:5,color:css('--ink'),weight:2,opacity:.8,fillColor:css('--map-bg'),fillOpacity:1})
+      .bindPopup(`<b>${j.n}</b><br>${j.s}<br><span style="opacity:.7">${j.lat.toFixed(5)}, ${j.lon.toFixed(5)}</span>`).addTo(gJx);
+    L.marker([j.lat,j.lon],{interactive:false,icon:L.divIcon({className:'jxlbl',html:j.n,iconSize:[0,0],iconAnchor:[-9,-4]})}).addTo(gJx);
+  });
+}
+function drawRef(){
+  gRef.clearLayers();if(!state.ref)return;
+  D.refs.forEach(r=>{
+    const dep=r.t==='depot';
+    L.circleMarker([r.lat,r.lon],{radius:dep?7:5,color:dep?css('--accent'):css('--muted'),weight:2,
+      fillColor:dep?css('--accent'):css('--muted'),fillOpacity:dep?.85:.45})
+      .bindPopup(`<b>${r.n}</b><br><span style="opacity:.7">${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}</span>`).addTo(gRef);
+    L.marker([r.lat,r.lon],{interactive:false,icon:L.divIcon({className:'jxlbl',html:r.n,iconSize:[0,0],iconAnchor:[-9,-2]})}).addTo(gRef);
+  });
+}
+function drawPts(){
+  gPts.clearLayers();gRad.clearLayers();
+  D.points.forEach(p=>{
+    if(!visible(p))return;
+    if(state.rad.has(p.id)){
+      L.circle([p.lat,p.lon],{pane:'rad',radius:80000,color:p.color,weight:p.id===state.sel?2.5:1.5,
+        opacity:p.id===state.sel?.95:.6,dashArray:p.id===state.sel?null:'7 6',
+        fillColor:p.color,fillOpacity:p.id===state.sel?.09:.05}).addTo(gRad);
+    }
+    if(p.moved){
+      L.polyline([[p.moved.lat,p.moved.lon],[p.lat,p.lon]],{color:p.color,weight:2,opacity:.7,dashArray:'5 5'}).addTo(gPts);
+      L.circleMarker([p.moved.lat,p.moved.lon],{radius:6,color:p.color,weight:2,fillColor:'transparent',fillOpacity:0,dashArray:'3 3'})
+        .bindPopup(`<b>จุดเดิมก่อนย้าย</b><br>${p.moved.why}<br><span style="opacity:.7">${p.moved.lat.toFixed(6)}, ${p.moved.lon.toFixed(6)}</span>`).addTo(gPts);
+    }
+    const sel=p.id===state.sel;
+    const g=gateOf(p);
+    const blocked=p.gate==='block';
+    const icon=L.divIcon({className:'',iconSize:[30,30],iconAnchor:[15,15],
+      html:`<div class="pinlbl" style="width:30px;height:30px;line-height:26px;background:${p.color};${blocked?'opacity:.5;border:2px dashed #fff;line-height:22px;':''}${sel?'box-shadow:0 0 0 6px '+p.color+'33,0 1px 6px rgba(0,0,0,.4)':''}">${p.rank}</div>`});
+    L.marker([p.lat,p.lon],{icon,title:p.full,riseOnHover:true})
+      .on('click',()=>select(p.id))
+      .bindPopup(`<b>อันดับ ${p.rank} · ${p.score.toFixed(1)}</b><br>${p.full}<br><b style="color:${blocked?'#B33':p.gate==='pass'?'#1C6B57':'#7A5A16'}">${g[0]}</b><br><span style="opacity:.7">${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</span>`)
+      .addTo(gPts);
+  });
+  const nv=D.points.filter(visible).length;
+  document.getElementById('mstat').textContent=`เปิดอยู่ ${nv} จุด · รัศมี ${D.points.filter(p=>visible(p)&&state.rad.has(p.id)).length} วง`;
+}
+function fit(){
+  const ll=D.points.filter(visible).map(p=>[p.lat,p.lon]);
+  if(!ll.length)return;
+  if(ll.length===1)map.setView(ll[0],12);
+  else map.fitBounds(L.latLngBounds(ll).pad(.22));
+}
+
+function legend(){
+  const w=document.getElementById('legend');w.innerHTML='';
+  D.points.forEach(p=>{
+    if(state.gateOnly&&p.gate==='block')return;
+    const g=gateOf(p);
+    const row=document.createElement('div');row.className='legendrow';row.dataset.sel=p.id===state.sel?'1':'0';row.dataset.gate=p.gate||'pending';
+    row.innerHTML=`<button class="lbadge" style="background:${p.color}${p.gate==='block'?';opacity:.55':''}" title="เลือกจุดนี้">${p.rank}</button>
+      <span class="lmid"><button class="lname" title="${p.full}">${p.name}</button><span class="gpill ${g[1]}" title="สถานะผังเมือง">${g[0]}</span></span>
+      <span class="lscore">${p.score.toFixed(1)}</span>
+      <span style="display:flex;gap:10px;align-items:center">
+        <span class="swlab"><input class="sw" type="checkbox" id="on-${p.id}" ${state.on.has(p.id)?'checked':''} title="แสดงหมุด"><label for="on-${p.id}">จุด</label></span>
+        <span class="swlab"><input class="sw" type="checkbox" id="rad-${p.id}" ${state.rad.has(p.id)?'checked':''} title="แสดงรัศมี 80 กม."><label for="rad-${p.id}">รัศมี</label></span>
+      </span>`;
+    row.querySelector('.lbadge').addEventListener('click',()=>select(p.id));
+    row.querySelector('.lname').addEventListener('click',()=>{select(p.id);map.setView([p.lat,p.lon],12)});
+    row.querySelector('#on-'+p.id).addEventListener('change',e=>{
+      e.target.checked?state.on.add(p.id):state.on.delete(p.id);
+      if(!state.on.has(p.id))state.rad.delete(p.id);
+      sync();});
+    row.querySelector('#rad-'+p.id).addEventListener('change',e=>{
+      if(e.target.checked){state.rad.add(p.id);state.on.add(p.id)}else state.rad.delete(p.id);
+      sync();});
+    w.appendChild(row);
+  });
+}
+
+function detail(){
+  const p=D.points.find(q=>q.id===state.sel);
+  const g=`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}`;
+  const pano=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.lat},${p.lon}`;
+  const rates=CRIT.map(([n,k])=>{const[w,c]=RATE[p.rates[k]];return `<div class="kv"><span class="k">${n}</span><span class="v ${c}" style="font-weight:600">${w}</span></div>`}).join('');
+  const dep=p.depots.map(([n,v])=>`<div class="kv"><span class="k">${n}</span><span class="v">${v}</span></div>`).join('');
+  const jx=p.jx.map(([d,n,w])=>`<div class="jx${d===0?' here':''}"><span class="d">${d===0?'อยู่ตรงนี้':d.toFixed(1)+' กม.'}</span><span><span>${n}</span><br><span class="w">${d===0?w:'ทิศ'+w}</span></span></div>`).join('');
+  const z=p.zone,gt=gateOf(p);
+  document.getElementById('detail').innerHTML=`
+    <div class="seclabel" style="margin:0">อันดับ ${p.rank} · คะแนนรวม ${p.score.toFixed(1)} เต็ม 100</div>
+    <h2>${p.full}</h2>
+    <p class="coord">${p.lat.toFixed(6)}, ${p.lon.toFixed(6)} · ที่มา: ${p.src}</p>
+    <div class="chips"><span class="gpill ${gt[1]}" style="padding:4px 9px;font-size:12px">${gt[0]}</span><span class="chip road">${p.road}</span><span class="chip">${p.area}</span>${p.isNew?'<span class="chip newpt">จุดตัดถนนที่เพิ่งเพิ่ม</span>':''}${p.moved?'<span class="chip" style="border-color:var(--accent);color:var(--accent-ink)">ย้ายพิกัดแล้ว 2.1 กม.</span>':''}</div>
+    <div class="actions">
+      <a class="btn primary" href="${g}" target="_blank" rel="noopener">เปิด Google Maps</a>
+      <a class="btn" href="${pano}" target="_blank" rel="noopener">Street View</a>
+      ${z?`<button class="btn full" id="zbtn">ดูภาพผังเมืองเต็มจอ</button>`:`<button class="btn full" disabled>ยังไม่มีภาพผังเมืองของจุดนี้</button>`}
+    </div>
+    <div class="sec"><div class="seclabel">จุดตัดถนนที่ใกล้ที่สุด</div>${jx}</div>
+    <div class="sec"><div class="seclabel">ระยะสำคัญ</div>
+      <div class="kv"><span class="k">${p.bank[0]}</span><span class="v">${p.bank[1]}</span></div>${dep}</div>
+    <div class="sec"><div class="seclabel">ระดับรายเกณฑ์</div>${rates}</div>
+    <div class="sec"><div class="seclabel">ผังเมือง · ด่านคัดกรองข้อแรก</div>
+      <div class="gbanner ${gt[1]}"><b>${gt[0]}</b> — ${p.gateWhy||'ยังไม่ได้ตรวจ'}</div>
+      ${z?`<div class="kv"><span class="k">ประเภทที่ดิน</span><span class="v">${z.type}</span></div>
+          <div class="kv"><span class="k">อ้างอิงผัง</span><span class="v" style="font-weight:400;color:var(--muted)">${z.plan}</span></div>
+          <img class="zthumb" id="zthumb" src="${z.img}" alt="ผังเมืองบริเวณ ${p.name}" loading="lazy">`
+        :`<p style="margin:0;font-size:13px;color:var(--muted)">ยังไม่มีภาพผังเมืองของพิกัดนี้</p>`}
+      <div class="flag warn">${p.warn}</div>
+      <div class="flag note">${p.note}</div>
+    </div>
+    <div class="sec"><div class="seclabel">สรุปสั้น</div><p style="margin:0;font-size:13.5px;color:var(--muted)">${p.why}</p></div>`;
+  if(z){
+    const open=()=>openLb(p);
+    document.getElementById('zbtn').addEventListener('click',open);
+    document.getElementById('zthumb').addEventListener('click',open);
+  }
+}
+
+const lb=document.getElementById('lb');
+function openLb(p){
+  document.getElementById('lbTitle').textContent='ผังเมือง · '+p.name;
+  const im=document.getElementById('lbImg');im.src=p.zone.img;im.alt='ผังเมืองบริเวณ '+p.name;
+  document.getElementById('lbFoot').textContent=`${p.zone.type} · ${p.zone.plan} · พิกัด ${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`;
+  lb.showModal?lb.showModal():lb.setAttribute('open','');
+}
+document.getElementById('lbClose').addEventListener('click',()=>lb.close());
+lb.addEventListener('click',e=>{if(e.target===lb)lb.close()});
+
+function sync(){drawPts();legend();detail();document.getElementById('tAll').setAttribute('aria-pressed',String(state.on.size===D.points.length));document.getElementById('tRadAll').setAttribute('aria-pressed',String(state.rad.size===D.points.length))}
+function select(id){state.sel=id;sync()}
+
+document.getElementById('tAll').addEventListener('click',()=>{
+  if(state.on.size===D.points.length){state.on.clear();state.rad.clear()}
+  else D.points.forEach(p=>state.on.add(p.id));
+  sync()});
+document.getElementById('tRadAll').addEventListener('click',()=>{
+  if(state.rad.size===D.points.length)state.rad.clear();
+  else D.points.forEach(p=>{state.rad.add(p.id);state.on.add(p.id)});
+  sync()});
+document.getElementById('tJx').addEventListener('click',e=>{state.jx=!state.jx;e.currentTarget.setAttribute('aria-pressed',String(state.jx));drawJx()});
+document.getElementById('tRef').addEventListener('click',e=>{state.ref=!state.ref;e.currentTarget.setAttribute('aria-pressed',String(state.ref));drawRef()});
+document.getElementById('tGate').addEventListener('click',e=>{
+  state.gateOnly=!state.gateOnly;e.currentTarget.setAttribute('aria-pressed',String(state.gateOnly));
+  if(state.gateOnly){
+    const ok=D.points.filter(p=>p.gate!=='block');
+    if(ok.length&&!ok.some(p=>p.id===state.sel))state.sel=ok[0].id;
+  }
+  sync();fit()});
+document.getElementById('tFit').addEventListener('click',fit);
+document.getElementById('selOnly').addEventListener('click',()=>{
+  state.on=new Set([D.points[0].id]);state.rad.clear();state.sel=D.points[0].id;sync();fit()});
+
+document.getElementById('sens').innerHTML=SENS.map(r=>`<tr><td>${r[0]}</td><td class="w">${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+
+function repaint(){drawRoads();drawJx();drawRef();drawPts()}
+const mq=window.matchMedia('(prefers-color-scheme: dark)');
+mq.addEventListener&&mq.addEventListener('change',repaint);
+new MutationObserver(repaint).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+drawRoads();drawJx();drawRef();sync();fit();
+setTimeout(()=>map.invalidateSize(),200);
+</script>
+</body></html>
